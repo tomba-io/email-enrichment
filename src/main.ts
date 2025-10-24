@@ -10,8 +10,8 @@ interface ActorInput {
     maxResults?: number;
 }
 
-// Rate limiting: 150 requests per minute
-const RATE_LIMIT = 150;
+// Rate limiting: 300 requests per minute
+const RATE_LIMIT = 300;
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
 let requestCount = 0;
 let windowStart = Date.now();
