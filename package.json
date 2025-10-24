@@ -1,6 +1,6 @@
 {
     "name": "email-enrichment",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "type": "module",
     "description": "Tomba Email Enrichment Actor for enriching email addresses with professional and personal data",
     "engines": {
