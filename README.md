@@ -176,7 +176,7 @@ The Actor gracefully handles various scenarios:
 
 ## Keywords
 
-email enrichment, contact enrichment, profile enhancement, lead enrichment, data enrichment, contact information, professional profiles, Tomba API, Apify actor, sales intelligence, prospect research, contact data, business intelligence
+email enrichment, contact enrichment, profile enhancement, lead enrichment, data enrichment, contact information, professional profiles, sales intelligence, prospect research, contact data, business intelligence
 
 ## Support
 
