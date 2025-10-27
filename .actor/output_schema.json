@@ -1,0 +1,14 @@
+{
+    "actorOutputSchemaVersion": 1,
+    "title": "Email Enrichment Output",
+    "description": "Output from Tomba Email Enrichment Actor - enriched contact profiles with social and professional data",
+    "type": "object",
+    "properties": {
+        "results": {
+            "type": "string",
+            "title": "Email Enrichment Results",
+            "description": "Enriched contact information with social profiles and professional details",
+            "template": "{{links.apiDefaultDatasetUrl}}/items"
+        }
+    }
+}
