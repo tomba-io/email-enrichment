@@ -174,6 +174,75 @@ The Actor gracefully handles various scenarios:
 - Monitor your Tomba usage dashboard
 - Consider Tomba's pricing tiers for volume usage
 
+## FAQ
+
+### General Questions
+
+**Q: What is email enrichment?**
+A: Email enrichment takes an email address and returns detailed information about the person and company associated with it, including name, job title, company details, social profiles, and contact information.
+
+**Q: What kind of information can I get from email enrichment?**
+A: You can get personal details (name, location, social profiles), professional information (job title, company, seniority), company data (size, industry, location), and verification status.
+
+**Q: How accurate is the enriched data?**
+A: Tomba maintains high data quality with regular updates. Accuracy varies by email and company, but typically ranges from 85-95% for professional email addresses.
+
+### Usage & Features
+
+**Q: Can I enrich personal email addresses (Gmail, Yahoo, etc.)?**
+A: Email enrichment works best with business/professional email addresses. Personal email domains provide limited information since they're not associated with company data.
+
+**Q: How many emails can I enrich at once?**
+A: You can process up to 1000 emails per run. For optimal performance, process 50-200 emails per batch.
+
+**Q: What if an email can't be enriched?**
+A: If no information is found, the result will contain minimal data. This is normal for new email addresses, private individuals, or emails from companies with limited public information.
+
+**Q: Do you provide social media profiles?**
+A: Yes, when available, enrichment includes LinkedIn, Twitter, and other social media profiles associated with the person.
+
+### Technical Questions
+
+**Q: What are the rate limits?**
+A: Tomba allows 300 requests per minute for enrichment. The Actor automatically handles rate limiting with appropriate delays.
+
+**Q: How fresh is the enriched data?**
+A: Tomba continuously updates its database. Each result includes timestamps showing when the data was last verified or updated.
+
+**Q: Can I use this for real-time enrichment?**
+A: Yes, but consider API response times (typically 1-2 seconds per email). For real-time applications, you might want to enrich emails asynchronously.
+
+**Q: What happens with invalid email addresses?**
+A: Invalid emails will still be processed, but will return minimal or no enrichment data. Consider verifying emails first for better results.
+
+### Data & Privacy
+
+**Q: Where does the enrichment data come from?**
+A: Data comes from publicly available sources including company websites, professional networks, social media, and other legitimate public databases.
+
+**Q: Is this GDPR compliant?**
+A: Yes, Tomba follows GDPR guidelines and only uses publicly available information. All data collection complies with privacy regulations.
+
+**Q: How current is the job title and company information?**
+A: Professional information is updated regularly, but changes in employment may take time to reflect. Timestamps help you assess data freshness.
+
+**Q: Can I enrich my own contact database?**
+A: Yes, this is a common use case. Ensure you have appropriate permissions to enrich emails in your database and comply with privacy regulations.
+
+### Business Applications
+
+**Q: How can I use enriched data for sales?**
+A: Enriched data helps qualify leads, personalize outreach, understand company hierarchy, and identify decision-makers. Use job titles and company info to tailor your approach.
+
+**Q: Is this useful for marketing campaigns?**
+A: Absolutely! Enrichment helps segment audiences, personalize content, understand company characteristics, and improve targeting for B2B campaigns.
+
+**Q: Can I use this for customer support?**
+A: Yes, enriching customer emails helps support teams understand who they're helping, their role, and company context for better service.
+
+**Q: How does this help with lead scoring?**
+A: Company size, industry, job titles, and seniority levels from enrichment can feed into lead scoring models to prioritize high-value prospects.
+
 ## Keywords
 
 email enrichment, contact enrichment, profile enhancement, lead enrichment, data enrichment, contact information, professional profiles, sales intelligence, prospect research, contact data, business intelligence
