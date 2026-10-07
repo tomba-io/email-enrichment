@@ -1,0 +1,347 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Tomba Email Enrichment API",
+        "version": "1.0.0",
+        "description": "Real-time API (Apify Standby mode). Enrich email addresses with the person's name, company, position, social profiles and optionally phone numbers. $0.00312 per credit: an enrichment with an answer costs 1 credit ($0.00312), or 6 credits ($0.01872) when `enrichMobile` is on and phone numbers are returned. Answers with no person details are charged; empty results, errors and cached results are free."
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Enrich one or more emails",
+                "description": "Without query parameters, returns a short usage note (also used as the readiness probe).",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "description": "Email address to enrich. Repeat the parameter or separate values with commas for several emails.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "patrick@stripe.com"
+                    },
+                    {
+                        "name": "emails",
+                        "in": "query",
+                        "description": "Alias of `email`.",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "enrichMobile",
+                        "in": "query",
+                        "description": "Also return the person's phone numbers in `phone_data` (6 credits instead of 1 when phone data is returned).",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        },
+                        "example": false
+                    },
+                    {
+                        "name": "webhookUrl",
+                        "in": "query",
+                        "description": "Optional URL that Tomba notifies when a result is ready (sent to Tomba as `webhook_url`).",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^https?://"
+                        }
+                    },
+                    {
+                        "name": "maxResults",
+                        "in": "query",
+                        "description": "Maximum number of emails to process (default 50).",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/Results"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "402": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Enrich emails using a JSON input",
+                "description": "Accepts the same JSON input as a normal Actor run.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "emails": {
+                                        "type": "array",
+                                        "description": "List of email addresses to enrich with detailed information",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "minItems": 1,
+                                        "maxItems": 1000,
+                                        "example": ["john@example.com", "jane@company.com", "contact@business.org"]
+                                    },
+                                    "maxResults": {
+                                        "type": "integer",
+                                        "description": "Maximum number of emails to process (default: 50, max: 1000)",
+                                        "default": 50,
+                                        "minimum": 1,
+                                        "maximum": 1000,
+                                        "example": 50
+                                    },
+                                    "enrichMobile": {
+                                        "type": "boolean",
+                                        "description": "Also return the person's phone numbers in `phone_data`. A result with phone data costs 6 credits instead of 1; results without phone data still cost 1 credit.",
+                                        "default": false
+                                    },
+                                    "webhookUrl": {
+                                        "type": "string",
+                                        "description": "Optional URL that Tomba notifies when a result is ready (sent to Tomba as `webhook_url`).",
+                                        "pattern": "^https?://",
+                                        "example": "https://example.com/tomba-webhook"
+                                    }
+                                },
+                                "required": ["emails"]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "$ref": "#/components/responses/Results"
+                    },
+                    "400": {
+                        "$ref": "#/components/responses/Error"
+                    },
+                    "402": {
+                        "$ref": "#/components/responses/Error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "responses": {
+            "Results": {
+                "description": "Enriched profiles, in the same format as the dataset items.",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "items": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/EnrichedEmail"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "Error": {
+                "description": "Invalid input (400) or the run's max charge limit was reached (402).",
+                "content": {
+                    "application/json": {
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "error": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "schemas": {
+            "EnrichedEmail": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "description": "The email address that was enriched"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "First name of the person associated with the email"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Last name of the person associated with the email"
+                    },
+                    "full_name": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Full name of the person associated with the email"
+                    },
+                    "company": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Company or organization associated with the email"
+                    },
+                    "position": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Job title or position of the person"
+                    },
+                    "country": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Country where the person is located"
+                    },
+                    "gender": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Gender of the person"
+                    },
+                    "website_url": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Website URL associated with the person or company"
+                    },
+                    "twitter": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Twitter profile URL of the person"
+                    },
+                    "linkedin": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "LinkedIn profile URL of the person"
+                    },
+                    "phone_number": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "Phone number associated with the person"
+                    },
+                    "score": {
+                        "type": "number",
+                        "nullable": true,
+                        "description": "Confidence score for the enrichment data (0-100)"
+                    },
+                    "accept_all": {
+                        "type": "boolean",
+                        "nullable": true,
+                        "description": "Whether the domain accepts all emails"
+                    },
+                    "verification": {
+                        "type": "object",
+                        "nullable": true,
+                        "description": "Email verification information",
+                        "properties": {
+                            "date": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Date when the email was verified"
+                            },
+                            "status": {
+                                "type": "string",
+                                "nullable": true,
+                                "description": "Verification status (valid, invalid, unknown, etc.)"
+                            }
+                        }
+                    },
+                    "sources": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "Sources where the email information was found",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "uri": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "URI where the email was found"
+                                },
+                                "website_url": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Website URL where the email was found"
+                                },
+                                "extracted_on": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Date when the email was extracted"
+                                },
+                                "last_seen_on": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Date when the email was last seen"
+                                },
+                                "still_on_page": {
+                                    "type": "boolean",
+                                    "nullable": true,
+                                    "description": "Whether the email is still on the page"
+                                }
+                            }
+                        }
+                    },
+                    "source": {
+                        "type": "string",
+                        "description": "Source of the enrichment data (tomba_email_enrichment)"
+                    },
+                    "error": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Error message if enrichment failed"
+                    },
+                    "phone_data": {
+                        "type": "array",
+                        "nullable": true,
+                        "description": "Phone numbers found for the person (only when `enrichMobile` is on)",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "number": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Phone number"
+                                },
+                                "type": {
+                                    "type": "string",
+                                    "nullable": true,
+                                    "description": "Phone type (for example mobile)"
+                                }
+                            }
+                        }
+                    },
+                    "phoneNumbers": {
+                        "type": "integer",
+                        "description": "Number of phone numbers returned in `phone_data`"
+                    },
+                    "charged": {
+                        "type": "boolean",
+                        "description": "Whether this request was charged (pay-per-event)"
+                    },
+                    "chargedCredits": {
+                        "type": "integer",
+                        "description": "Number of Tomba credits charged for this item (0 when free or cached)"
+                    },
+                    "cached": {
+                        "type": "boolean",
+                        "description": "Whether the result came from the cache (free)"
+                    }
+                }
+            }
+        }
+    }
+}
