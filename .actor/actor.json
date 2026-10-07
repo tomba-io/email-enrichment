@@ -2,8 +2,8 @@
     "actorSpecification": 1,
     "name": "email-enrichment",
     "title": "Tomba Email Enrichment",
-    "description": "Enrich email addresses with professional and personal data using the Tomba API.",
-    "version": "0.0",
+    "description": "Enrich email addresses with professional and personal data, and optionally phone numbers, using the Tomba API.",
+    "version": "1.0",
     "buildTag": "latest",
     "meta": {
         "templateId": "ts-empty"
@@ -13,5 +13,9 @@
     "output": "./output_schema.json",
     "storages": {
         "dataset": "./dataset_schema.json"
+    },
+    "environmentVariables": {
+        "TOMBA_API_KEY": "@tombaApiKey",
+        "TOMBA_API_SECRET": "@tombaApiSecret"
     }
 }

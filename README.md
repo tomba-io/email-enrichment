@@ -1,98 +1,70 @@
-# Tomba Email Enrichment Actor
+# Tomba Email Enrichment
 
-[![Actor](https://img.shields.io/badge/Apify-Actor-blue)](https://apify.com/actors)
-[![Tomba API](https://img.shields.io/badge/Tomba-API-green)](https://tomba.io)
-[![Rate Limit](https://img.shields.io/badge/Rate%20Limit-300%2Fmin-orange)](https://tomba.io/api)
+[![Price](https://img.shields.io/badge/Price-%243.12%20per%201K%20emails-brightgreen)](#pricing)
+[![No signup](https://img.shields.io/badge/Tomba%20account-not%20needed-blue)](#quick-start)
+[![No rate limit](https://img.shields.io/badge/Rate%20limit-none-brightgreen)](#built-for-big-lists)
 
-A powerful Apify Actor that enriches email addresses with comprehensive professional and personal data using the **Tomba Email Enrichment API**. Perfect for lead enrichment, contact verification, and building detailed contact profiles from email addresses.
+**Turn a bare email address into a full contact profile.** Paste a list of emails and get the person's name, job title, company, website, country, LinkedIn and Twitter, plus a confidence score, verification status and the public sources the data came from. Turn on **Find phone numbers** to get their phone numbers too. Ready to export to your CRM.
 
-## Key Features
+No Tomba account. No API key. No subscription. **You pay $0.00312 per email, and only when Tomba returns an answer.**
 
-- **Email Enrichment**: Extract detailed information from email addresses
-- **Professional Data**: Company, position, and professional details
-- **Personal Information**: Names, social profiles, and contact details
-- **Email Verification**: Validate email addresses with confidence scores
-- **Social Profiles**: Twitter, LinkedIn, and other social media links
-- **Bulk Processing**: Process multiple emails efficiently with rate limiting
-- **Rate Limited**: Respects Tomba's 300 requests per minute limit
-- **Rich Data Output**: Comprehensive contact profiles with metadata
-- **Error Handling**: Graceful handling of invalid or unverified emails
+## Why teams choose this Actor
 
-## How it works
+- **Start in 30 seconds**: Open the Actor, paste your emails, click Start. Nothing to sign up for
+- **Pay only for answers**: Errors, invalid emails and empty results are free
+- **$3.12 per 1,000 emails**: No monthly plan, no credits that expire, no minimum spend
+- **Phone numbers on demand**: Turn on `enrichMobile` to get mobile and direct numbers, and pay for them only when we find one
+- **Built for big lists**: No rate limit. Thousands of emails run in parallel
+- **Never pay twice**: Emails you enriched in the last 24 hours come back from cache for free
+- **Clean input, clean output**: Emails are trimmed, lowercased and deduplicated automatically
+- **Export anywhere**: Download as CSV, Excel or JSON, or send results straight to your CRM with Apify integrations
 
-The Actor leverages Tomba's powerful Email Enrichment API to extract comprehensive contact information:
+## Promises we actually keep
 
-### Process Flow
+- **Less than 5% bounce rate** — Every email is verified in real time before you're charged.
 
-1. **Authentication**: Connects to Tomba API using your credentials
-2. **Input Processing**: Accepts array of email addresses to enrich
-3. **Email Enrichment**: Uses Tomba's `emailEnrichment` method for each email
-4. **Data Validation**: Processes and validates contact information
-5. **Rate Limiting**: Automatically handles 300 requests/minute limit
-6. **Data Storage**: Saves results to Apify dataset
+## What you can do with it
 
-### What You Get
+| Goal                      | How email enrichment helps                                                |
+| ------------------------- | ------------------------------------------------------------------------- |
+| **Complete your CRM**     | Fill in names, job titles and companies for contacts that only have email |
+| **Qualify inbound leads** | See who signed up and where they work before you reply                    |
+| **Personalize outreach**  | Address people by name and reference their role and company               |
+| **Route leads faster**    | Send leads to the right rep based on company, position or country         |
+| **Clean your lists**      | Check verification status and score before you send a campaign            |
 
-For each enriched email, you'll receive:
+## Quick start
 
-- **Personal Info**: First name, last name, full name
-- **Email Details**: Verification status with confidence score
-- **Professional**: Company, position, website URL
-- **Location**: Country information (when available)
-- **Contact Info**: Phone numbers (when available)
-- **Social Media**: Twitter, LinkedIn profiles
-- **Source Tracking**: Multiple sources where information was found
-- **Verification**: Email validation status and metadata
+1. Click **Try for free**
+2. Paste your email addresses into **Email Addresses** (for example `john@stripe.com`)
+3. Click **Start**, then download your results as CSV, Excel or JSON
 
-## Quick Start
+That's it. No Tomba account or API key is needed.
 
-### Prerequisites
+## Input
 
-1. **Tomba Account**: Sign up at [Tomba.io](https://app.tomba.io/api) to get your API credentials
-
-### Getting Your API Keys
-
-1. Visit [Tomba API Dashboard](https://app.tomba.io/api)
-2. Copy your **API Key** (starts with `ta_`)
-3. Copy your **Secret Key** (starts with `ts_`)
-
-## Input Configuration
-
-### Required Parameters
-
-| Parameter        | Type     | Description                        |
-| ---------------- | -------- | ---------------------------------- |
-| `tombaApiKey`    | `string` | Your Tomba API key (ta_xxxx)       |
-| `tombaApiSecret` | `string` | Your Tomba secret key (ts_xxxx)    |
-| `emails`         | `array`  | Array of email addresses to enrich |
-
-### Optional Parameters
-
-| Parameter    | Type     | Default | Description                         |
-| ------------ | -------- | ------- | ----------------------------------- |
-| `maxResults` | `number` | `50`    | Maximum number of results to return |
-
-### Example Input
+| Field            | Required | Default | Description                                                                                                           |
+| ---------------- | -------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `emails`         | Yes      |         | Email addresses to enrich (up to 1,000 per run)                                                                       |
+| `maxResults`     | No       | `50`    | Maximum number of emails to enrich in this run (up to 1,000)                                                          |
+| `enrichMobile`   | No       | `false` | Also find the person's phone numbers. A result with phone data costs 6 credits instead of 1 (see [Pricing](#pricing)) |
+| `webhookUrl`     | No       |         | URL (`http://` or `https://`) that Tomba notifies when a result is ready                                              |
+| `maxConcurrency` | No       | `10`    | How many emails to process at the same time (1–50)                                                                    |
+| `maxRetries`     | No       | `3`     | How many times to retry a temporary failure (0–10)                                                                    |
+| `useCache`       | No       | `true`  | Reuse results from your previous runs for free                                                                        |
+| `cacheTtlHours`  | No       | `24`    | How long cached results stay valid (`0` turns the cache off)                                                          |
 
 ```json
 {
-    "tombaApiKey": "ta_xxxxxxxxxxxxxxxxxxxx",
-    "tombaApiSecret": "ts_xxxxxxxxxxxxxxxxxxxx",
-    "emails": ["john.doe@example.com", "jane.smith@company.com", "contact@startup.io"],
-    "maxResults": 100
+    "emails": ["john@stripe.com", "info@tomba.io"],
+    "maxResults": 500,
+    "enrichMobile": true
 }
 ```
 
-### Best Practices
+## Output
 
-- **Email Quality**: Use valid, properly formatted email addresses
-- **Rate Limits**: The Actor automatically handles Tomba's 300 requests/minute limit
-- **Batch Size**: Process 10-50 emails at a time for optimal performance
-- **Data Privacy**: Ensure compliance with data protection regulations
-
-## Output Data Structure
-
-The Actor returns detailed contact information for each enriched email:
+You get one row per email:
 
 ```json
 {
@@ -100,14 +72,13 @@ The Actor returns detailed contact information for each enriched email:
     "first_name": "John",
     "last_name": "Doe",
     "full_name": "John Doe",
+    "gender": "male",
     "company": "Example Corp",
     "position": "Software Engineer",
     "country": "US",
-    "gender": "male",
     "website_url": "example.com",
     "twitter": "https://twitter.com/johndoe",
     "linkedin": "https://linkedin.com/in/johndoe",
-    "phone_number": "+1234567890",
     "score": 95,
     "accept_all": false,
     "verification": {
@@ -123,143 +94,115 @@ The Actor returns detailed contact information for each enriched email:
             "still_on_page": true
         }
     ],
-    "source": "tomba_email_enrichment"
+    "phone_data": [{ "number": "+14155550123", "type": "mobile" }],
+    "source": "tomba_email_enrichment",
+    "phoneNumbers": 1,
+    "charged": true,
+    "chargedCredits": 6,
+    "cached": false
 }
 ```
 
-### Data Fields Explained
+| Field                                  | Description                                             |
+| -------------------------------------- | ------------------------------------------------------- |
+| `email`                                | The email you submitted                                 |
+| `first_name`, `last_name`, `full_name` | Name of the person behind the email                     |
+| `gender`                               | Gender, when known                                      |
+| `company`                              | Company the person works for                            |
+| `position`                             | Job title                                               |
+| `country`                              | Country code                                            |
+| `website_url`                          | Company website                                         |
+| `twitter`, `linkedin`                  | Social profile links, when available                    |
+| `phone_number`                         | Phone number, when available                            |
+| `phone_data`                           | The person's phone numbers (only with `enrichMobile`)   |
+| `phoneNumbers`                         | How many phone numbers were returned                    |
+| `score`                                | Confidence score from 0 to 100                          |
+| `accept_all`                           | `true` if the company's mail server accepts any address |
+| `verification`                         | Verification `status` (for example `valid`) and `date`  |
+| `sources`                              | Public web pages where the email was found, with dates  |
+| `source`                               | Always `tomba_email_enrichment`                         |
+| `charged`                              | `true` if this lookup was billed                        |
+| `chargedCredits`                       | Credits billed for this row (0, 1 or 6)                 |
+| `cached`                               | `true` if this result came from the cache (free)        |
+| `error`                                | Why no data was returned, if applicable                 |
 
-- **Email Verification**: `verification.status` shows email validity
-- **Confidence Score**: `score` (0-100) indicates data reliability
-- **Accept All**: `accept_all` indicates if domain accepts all emails
-- **Source Tracking**: `sources` array shows where information was found
-- **Time Stamps**: Track when data was extracted and last verified
-- **Multi-Source**: Contact info may be found across multiple sources
+Fields Tomba doesn't know for a person are `null`. The dataset has four ready-made views: **Overview**, **Detailed View**, **Successful Enrichments** and **Enrichment Errors**.
 
-## Use Cases
+## Pricing
 
-- **Lead Enrichment**: Enhance contact records with professional details
-- **Email Verification**: Validate email addresses before outreach campaigns
-- **Contact Building**: Build comprehensive contact profiles from email lists
-- **CRM Enhancement**: Enrich existing customer databases
-- **Marketing Research**: Gather insights about prospects and leads
-- **Sales Intelligence**: Build detailed prospect profiles for sales teams
+**$0.00312 per credit.** Enriching an email costs 1 credit ($3.12 per 1,000 emails). No subscription and no Tomba account needed.
 
-## Error Handling
+| Result                                                      | Credits | Price    |
+| ----------------------------------------------------------- | ------- | -------- |
+| Email enrichment                                            | 1       | $0.00312 |
+| Enrichment with phone data (`enrichMobile` on, phone found) | 6       | $0.01872 |
+| `enrichMobile` on, but no phone number found                | 1       | $0.00312 |
 
-The Actor gracefully handles various scenarios:
+Phone data adds $0.0156 (5 credits) to a result, and only when `enrichMobile` is on and at least one phone number is returned.
 
-- **Invalid Emails**: Records error message for malformed addresses
-- **No Data Found**: Logs when enrichment data is unavailable
-- **Rate Limiting**: Automatically waits when API limits are reached
-- **API Errors**: Captures and reports API-related issues
+You are only charged when Tomba returns an answer:
 
-## Resources & Documentation
+| What happens                                                      | Charged |
+| ----------------------------------------------------------------- | ------- |
+| Profile data found for the email                                  | Yes     |
+| Tomba checked the email but has no person details (fields `null`) | Yes     |
+| No result returned at all                                         | No      |
+| Invalid email or any other error                                  | No      |
+| Temporary failure (it is retried automatically)                   | No      |
+| Result served from the cache                                      | No      |
 
-### API Documentation
+Every row shows `charged`, `chargedCredits` and `cached`, so you always know what you paid for. To cap your spend, set **Maximum cost per run** in the run options: the Actor stops cleanly when the limit is reached.
 
-- [Tomba API Docs](https://tomba.io/api) - Complete API reference
-- [Authentication Guide](https://app.tomba.io/api) - Get your API keys
-- [Pricing & Limits](https://tomba.io/pricing) - Understand rate limits and costs
+## Built for big lists
 
-### Rate Limiting
+- **No rate limit**: up to 50 emails are processed at the same time
+- **Automatic retries**: temporary failures are retried for you, and never billed
+- **Resumable**: if a run is interrupted, it continues where it stopped without charging you again
+- **Cache**: repeat lookups within 24 hours are free
 
-- Tomba limits to **300 requests per minute**
-- Actor automatically handles rate limiting with delays
-- Large batches may take time to complete
+## Integrations
 
-### Cost Considerations
-
-- Each email processed = 1 Tomba API request
-- Monitor your Tomba usage dashboard
-- Consider Tomba's pricing tiers for volume usage
+Run it on a schedule, call it from the Apify API, or connect it to Zapier, Make, Google Sheets, HubSpot, Slack and hundreds of other apps with [Apify integrations](https://docs.apify.com/platform/integrations). Webhooks let you trigger your own workflow as soon as a run finishes.
 
 ## FAQ
 
-### General Questions
+**Do I need a Tomba account or API key?**
+No. Everything is built in. You only pay the per-email price on Apify.
 
-**Q: What is email enrichment?**
-A: Email enrichment takes an email address and returns detailed information about the person and company associated with it, including name, job title, company details, social profiles, and contact information.
+**How much does it cost?**
+$0.00312 per email with an answer ($3.12 per 1,000), or $0.01872 when you turn on `enrichMobile` and we return phone numbers. Errors, empty results and cached lookups are free.
 
-**Q: What kind of information can I get from email enrichment?**
-A: You can get personal details (name, location, social profiles), professional information (job title, company, seniority), company data (size, industry, location), and verification status.
+**Can I get phone numbers too?**
+Yes. Turn on **Find phone numbers** (`enrichMobile`). Numbers come back in `phone_data`, and `phoneNumbers` tells you how many. A result with phone data costs 6 credits ($0.01872) instead of 1; if no phone number is found you pay the normal 1 credit. Phone lookups are off by default.
 
-**Q: How accurate is the enriched data?**
-A: Tomba maintains high data quality with regular updates. Accuracy varies by email and company, but typically ranges from 85-95% for professional email addresses.
+**How many emails can I enrich in one run?**
+Up to 1,000 per run, processed in parallel. There is no rate limit. Set **Maximum Results** to the number of emails you want to enrich (default 50).
 
-### Usage & Features
+**Can I enrich Gmail, Yahoo or other personal addresses?**
+Enrichment works best with business email addresses. Personal addresses are rarely linked to a company or job title, so expect fewer details.
 
-**Q: Can I enrich personal email addresses (Gmail, Yahoo, etc.)?**
-A: Email enrichment works best with business/professional email addresses. Personal email domains provide limited information since they're not associated with company data.
+**Why are some fields empty?**
+Tomba only returns what it finds in public sources. If a person has little public presence, some fields come back `null`.
 
-**Q: How many emails can I enrich at once?**
-A: You can process up to 1000 emails per run. For optimal performance, process 50-200 emails per batch.
+**What if my run is interrupted?**
+It picks up where it stopped. Emails already processed are not charged again.
 
-**Q: What if an email can't be enriched?**
-A: If no information is found, the result will contain minimal data. This is normal for new email addresses, private individuals, or emails from companies with limited public information.
+**Where does the data come from?**
+From publicly available sources such as company websites and professional profiles. Each result lists its `sources` with the dates they were seen.
 
-**Q: Do you provide social media profiles?**
-A: Yes, when available, enrichment includes LinkedIn, Twitter, and other social media profiles associated with the person.
-
-### Technical Questions
-
-**Q: What are the rate limits?**
-A: Tomba allows 300 requests per minute for enrichment. The Actor automatically handles rate limiting with appropriate delays.
-
-**Q: How fresh is the enriched data?**
-A: Tomba continuously updates its database. Each result includes timestamps showing when the data was last verified or updated.
-
-**Q: Can I use this for real-time enrichment?**
-A: Yes, but consider API response times (typically 1-2 seconds per email). For real-time applications, you might want to enrich emails asynchronously.
-
-**Q: What happens with invalid email addresses?**
-A: Invalid emails will still be processed, but will return minimal or no enrichment data. Consider verifying emails first for better results.
-
-### Data & Privacy
-
-**Q: Where does the enrichment data come from?**
-A: Data comes from publicly available sources including company websites, professional networks, social media, and other legitimate public databases.
-
-**Q: Is this GDPR compliant?**
-A: Yes, Tomba follows GDPR guidelines and only uses publicly available information. All data collection complies with privacy regulations.
-
-**Q: How current is the job title and company information?**
-A: Professional information is updated regularly, but changes in employment may take time to reflect. Timestamps help you assess data freshness.
-
-**Q: Can I enrich my own contact database?**
-A: Yes, this is a common use case. Ensure you have appropriate permissions to enrich emails in your database and comply with privacy regulations.
-
-### Business Applications
-
-**Q: How can I use enriched data for sales?**
-A: Enriched data helps qualify leads, personalize outreach, understand company hierarchy, and identify decision-makers. Use job titles and company info to tailor your approach.
-
-**Q: Is this useful for marketing campaigns?**
-A: Absolutely! Enrichment helps segment audiences, personalize content, understand company characteristics, and improve targeting for B2B campaigns.
-
-**Q: Can I use this for customer support?**
-A: Yes, enriching customer emails helps support teams understand who they're helping, their role, and company context for better service.
-
-**Q: How does this help with lead scoring?**
-A: Company size, industry, job titles, and seniority levels from enrichment can feed into lead scoring models to prioritize high-value prospects.
-
-## Keywords
-
-email enrichment, contact enrichment, profile enhancement, lead enrichment, data enrichment, contact information, professional profiles, sales intelligence, prospect research, contact data, business intelligence
+**How do I limit what I spend?**
+Set **Maximum cost per run** before you start. The Actor stops as soon as the limit is reached.
 
 ## Support
 
-If you need any help, have questions, or encounter any issues while using Tomba.io, please don't hesitate to reach out to our support team. You can contact us via:
+Questions or feedback? We're happy to help:
 
 - **Email**: support@tomba.io
-- **Live chat**: Available on the Tomba.io website during business hours
-
-## Contributing
-
-We welcome contributions to improve this actor. Please feel free to submit issues, feature requests, or pull requests to help make this tool even better for the community.
+- **Live chat**: on [tomba.io](https://tomba.io) during business hours
+- **Issues**: use the **Issues** tab on this Actor's page
 
 ## About Tomba
 
-Founded in 2020, Tomba prides itself on being the most reliable, accurate, and in-depth source of email address data available anywhere. We process terabytes of data to produce our Email finder API.
+Founded in 2020, [Tomba](https://tomba.io) is a B2B data platform for finding, verifying and enriching business contacts. Our Email Finder, Domain Search and Email Verifier help sales and marketing teams reach the right people.
 
 ![Tomba Logo](https://tomba.io/logo.png)

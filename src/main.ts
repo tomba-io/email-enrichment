@@ -1,135 +1,107 @@
-// Apify SDK - toolkit for building Apify Actors (Read more at https://docs.apify.com/sdk/js/)
-import { Actor } from 'apify';
-// Tomba SDK for email enrichment
-import { Finder, TombaClient } from 'tomba';
+import { Actor, log } from 'apify';
+import { Finder } from 'tomba';
 
-interface ActorInput {
-    tombaApiKey: string;
-    tombaApiSecret: string;
-    emails?: string[];
+import type { RunOptions } from './tomba.js';
+import {
+    callTomba,
+    hasPhoneData,
+    isBillable,
+    logSummary,
+    normalizeEmail,
+    PHONE_CREDITS,
+    phoneDataCount,
+    runPool,
+    setupTomba,
+    unique,
+    useRunState,
+} from './tomba.js';
+
+interface ActorInput extends RunOptions {
+    emails: string[];
     maxResults?: number;
+    enrichMobile?: boolean;
+    webhookUrl?: string;
 }
 
-// Rate limiting: 300 requests per minute
-const RATE_LIMIT = 300;
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-let requestCount = 0;
-let windowStart = Date.now();
+const SOURCE = 'tomba_email_enrichment';
 
-async function rateLimitedRequest<T>(requestFn: () => Promise<T>): Promise<T> {
-    const now = Date.now();
-
-    // Reset counter if window has passed
-    if (now - windowStart > RATE_LIMIT_WINDOW) {
-        requestCount = 0;
-        windowStart = now;
-    }
-
-    // Check if we've hit the rate limit
-    if (requestCount >= RATE_LIMIT) {
-        const waitTime = RATE_LIMIT_WINDOW - (now - windowStart);
-        console.log(`Rate limit reached. Waiting ${Math.ceil(waitTime / 1000)} seconds...`);
-        await new Promise<void>((resolve) => {
-            setTimeout(() => resolve(), waitTime);
-        });
-
-        // Reset after waiting
-        requestCount = 0;
-        windowStart = Date.now();
-    }
-
-    requestCount++;
-    return await requestFn();
-}
-
-// The init() call configures the Actor for its environment
 await Actor.init();
 
-try {
-    // Get input from the Actor
-    const input = (await Actor.getInput()) as ActorInput;
-
-    if (!input) {
-        throw new Error('No input provided');
-    }
-
-    if (!input.tombaApiKey || !input.tombaApiSecret) {
-        throw new Error('Tomba API key and secret are required');
-    }
-
-    console.log('Starting Tomba Email-Enrichment Actor...');
-    console.log(`Processing ${input.emails?.length || 0} emails`);
-
-    // Init Tomba
-    const client = new TombaClient();
-    const finder = new Finder(client);
-    client
-        .setKey(input.tombaApiKey) // Your Key
-        .setSecret(input.tombaApiSecret); // Your Secret
-
-    const results: Record<string, unknown>[] = [];
-    const maxResults = input.maxResults || 50;
-
-    // Process emails
-    if (input.emails && input.emails.length > 0) {
-        console.log(`Processing ${input.emails.length} emails...`);
-
-        for (const email of input.emails) {
-            if (results.length >= maxResults) break;
-
-            try {
-                console.log(`Enriching email: ${email}`);
-
-                // Use Tomba's email enrichment method with rate limiting
-                const result = finder.emailEnrichment(email);
-
-                const tombaResult = await rateLimitedRequest(async () => await result);
-
-                if (tombaResult && tombaResult.data && tombaResult.data.first_name) {
-                    const enrichmentData = {
-                        ...tombaResult.data,
-                        email,
-                        source: 'tomba_email_enrichment',
-                    };
-
-                    results.push(enrichmentData);
-                    console.log(
-                        `Found enrichment data for: ${email} - ${tombaResult.data.first_name || 'Unknown Person'}`,
-                    );
-                } else {
-                    // Add empty result if no data found
-                    results.push({
-                        email,
-                        error: 'No enrichment data found',
-                        source: 'tomba_email_enrichment',
-                    });
-                }
-            } catch (error) {
-                console.log(`Error processing email ${email}:`, error);
-
-                // Add error entry to results for transparency
-                results.push({
-                    email,
-                    error: error instanceof Error ? error.message : 'Unknown error',
-                    source: 'tomba_email_enrichment',
-                });
-            }
-        }
-    }
-
-    if (results.length > 0) {
-        await Actor.pushData(results);
-    }
-
-    // Log summary
-    console.log('=== SUMMARY ===');
-    console.log(`Total emails processed: ${input.emails?.length || 0}`);
-    console.log(`Successful enrichments: ${results.filter((r) => !('error' in r)).length}`);
-    console.log(`Failed enrichments: ${results.filter((r) => 'error' in r).length}`);
-} catch (error) {
-    console.error('Actor failed:', error);
-    throw error;
+const input = await Actor.getInput<ActorInput>();
+if (!input?.emails?.length) {
+    await Actor.fail('Input must contain at least one email in "emails".');
 }
 
-// Gracefully exit the Actor process
+const { emails: rawEmails, maxResults = 50, enrichMobile = false, webhookUrl: rawWebhookUrl, ...runOptions } = input!;
+const webhookUrl = typeof rawWebhookUrl === 'string' ? rawWebhookUrl.trim() : '';
+if (webhookUrl && !/^https?:\/\//.test(webhookUrl)) {
+    await Actor.fail('"webhookUrl" must start with http:// or https://.');
+}
+
+const client = await setupTomba(runOptions);
+const finder = new Finder(client);
+const state = await useRunState();
+
+const emails = unique(rawEmails.map((email) => (typeof email === 'string' ? normalizeEmail(email) : '')));
+const doneCount = emails.filter((email) => state.done[email]).length;
+const pending = emails.filter((email) => !state.done[email]).slice(0, Math.max(0, maxResults - doneCount));
+if (doneCount > 0) {
+    log.info(`Resuming: ${doneCount} emails already processed.`);
+}
+
+const startedAt = Date.now();
+log.info(`Enriching ${pending.length} emails${enrichMobile ? ' (with phone numbers)' : ''}`);
+
+/** Tomba: 1 search credit, or 6 when phone data is returned (`enrich_mobile=true`). */
+const credits = (body: Record<string, unknown>) => 1 + (hasPhoneData(body.data) ? PHONE_CREDITS : 0);
+
+await runPool(pending, async (email) => {
+    // Optional parameters are only sent (and only part of the cache key) when set.
+    const params: Record<string, unknown> = { email };
+    if (enrichMobile) params.enrich_mobile = true;
+    if (webhookUrl) params.webhook_url = webhookUrl;
+
+    const res = await callTomba(
+        'enrich',
+        params,
+        async () => finder.emailEnrichment(email, enrichMobile || undefined, webhookUrl || undefined),
+        undefined,
+        credits,
+    );
+    if (res.skipped) return;
+
+    const chargedCredits = res.chargedCount ?? 0;
+    if (isBillable(res.body)) {
+        const data = res.data as Record<string, unknown>;
+        const phoneNumbers = phoneDataCount(data);
+        await Actor.pushData({
+            ...data,
+            email,
+            source: SOURCE,
+            phoneNumbers,
+            charged: res.charged,
+            chargedCredits,
+            cached: res.cached,
+        });
+        const name = data.full_name ?? data.first_name ?? 'Unknown Person';
+        const phones = phoneNumbers ? `, ${phoneNumbers} phone numbers` : '';
+        log.info(`${email}: ${String(name)}${phones}${res.cached ? ' (cached)' : ''}`);
+    } else {
+        await Actor.pushData({
+            email,
+            source: SOURCE,
+            phoneNumbers: 0,
+            charged: res.charged,
+            chargedCredits,
+            cached: res.cached,
+            error: res.error ?? 'No enrichment data found',
+        });
+        log.info(`${email}: ${res.error ?? 'no enrichment data found'}`);
+    }
+
+    state.done[email] = true;
+});
+
+logSummary('Email Enrichment', emails.length, startedAt);
+
 await Actor.exit();
