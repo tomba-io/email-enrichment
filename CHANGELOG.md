@@ -30,3 +30,7 @@ All notable changes to this project will be documented in this file. See [standa
 - `apify` upgraded to 3.7.2
 
 ### 0.0.2 (2025-10-24)
+
+### Bug Fixes
+
+- Dataset schema accepts `null` for every Tomba field and a boolean or string `phone_number`, so Apify's item validation can't fail a run

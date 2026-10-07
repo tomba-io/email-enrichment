@@ -49,7 +49,7 @@
                 "description": "LinkedIn profile URL of the person"
             },
             "phone_number": {
-                "type": ["boolean", "null"],
+                "type": ["boolean", "string", "null"],
                 "description": "Phone number associated with the person"
             },
             "score": {
